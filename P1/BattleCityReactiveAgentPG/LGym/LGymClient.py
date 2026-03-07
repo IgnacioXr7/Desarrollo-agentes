@@ -8,7 +8,7 @@
         #data = input(' -> ')
         #conn.send(data.encode())  # send data to the client
 		
-import LGymConnect as LGymC
+from LGym import LGymConnect as LGymC
 import time
 
 

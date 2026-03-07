@@ -1,4 +1,4 @@
-import LGym.LGymConnect as LGymC
+from LGym import LGymConnect as LGymC
 
 def serverCommands(data):
 	if data == "hello":

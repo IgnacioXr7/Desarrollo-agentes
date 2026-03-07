@@ -1,6 +1,6 @@
 from Agent.BaseAgent import BaseAgent
+from StateMachine.GoToCommandCenter import GoToCommandCenter
 from StateMachine.StateMachine import StateMachine
-from States.GoToCommandCenter import GoToCommandCenter
 
 
 class ReactiveAgent(BaseAgent):
