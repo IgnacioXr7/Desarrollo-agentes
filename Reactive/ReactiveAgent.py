@@ -1,9 +1,6 @@
 from Agent.BaseAgent import BaseAgent
+from StateMachine.GoToCommandCenter import GoToCommandCenter
 from StateMachine.StateMachine import StateMachine
-from States.AttackTarget import AttackTarget
-from States.Escape import Escape
-from States.GoToExit import GoToExit
-from States.ShootAndOrient import ShootAndOrient
 
 
 class ReactiveAgent(BaseAgent):
