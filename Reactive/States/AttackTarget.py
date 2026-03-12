@@ -58,7 +58,7 @@ class AttackTarget(State):
         cc_alive = cc_x >= 0 and cc_y >= 0
         player_alive = player_x >= 0 and player_y >= 0
         
-        if cc_alive:
+        if player_alive:
             # Comando Center vivo → atacar CC (PRIORIDAD 1)
             target_x = cc_x
             target_y = cc_y
