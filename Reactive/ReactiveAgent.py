@@ -1,6 +1,5 @@
 from Agent.BaseAgent import BaseAgent
 from StateMachine.StateMachine import StateMachine
-from States.GoToCommandCenter import GoToCommandCenter
 from States.Shoot import Shoot 
 from States.Detect import Detect
 from States.Orient import Orient
