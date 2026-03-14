@@ -7,8 +7,7 @@
         #print("from connected user: " + str(data))
         #data = input(' -> ')
         #conn.send(data.encode())  # send data to the client
-		
-from LGym import LGymConnect as LGymC
+import LGymConnect as LGymC
 import time
 
 

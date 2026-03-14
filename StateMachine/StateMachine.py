@@ -21,7 +21,6 @@ class StateMachine(State):
             self.curentState=newState
             self.states[self.curentState].Start(agent)
         return actions
-    
 
     #Metodo que se llama al finalizar la máquina de estado
     #def End(self, win):
