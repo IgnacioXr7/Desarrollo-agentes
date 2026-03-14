@@ -1,5 +1,10 @@
 from Agent.BaseAgent import BaseAgent
 from StateMachine.StateMachine import StateMachine
+from States.GoToCommandCenter import GoToCommandCenter
+from States.Shoot import Shoot 
+from States.Detect import Detect
+from States.Orient import Orient
+from States.RunAway import RunAway
 from States.AttackTarget import AttackTarget
 from States.Escape import Escape
 from States.GoToExit import GoToExit
@@ -16,7 +21,10 @@ class ReactiveAgent(BaseAgent):
             "AttackTarget": AttackTarget("AttackTarget"),
             "Escape": Escape("Escape"),
             "GoToExit": GoToExit("GoToExit"),
-            "ShootAndOrient": ShootAndOrient("ShootAndOrient")
+            "ShootAndOrient": ShootAndOrient("ShootAndOrient"),
+            "RunAway" : RunAway("RunAway"),
+            "Shoot" : Shoot("Shoot"),
+            "Orient" : Orient("Orient")
         }
         # Estado inicial: Atacar
         #self.stateMachine = StateMachine("ReactiveBehavior", dictionary, "AttackTarget")
