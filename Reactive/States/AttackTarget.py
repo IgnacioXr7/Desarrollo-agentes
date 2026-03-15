@@ -110,9 +110,14 @@ class AttackTarget(State):
           #  self.nextState = "Orient"
            # return AgentConsts.NO_MOVE, False
 
+        #    print("[ATTACK] PLAYER no alineado -> Orient")
+        #    self.nextState = "Orient"
+        #    return AgentConsts.NO_MOVE, False
+
+
         # Si no hay player, atacar CC
         cc_dir = self._target_in_perception(perception, AgentConsts.COMMAND_CENTER)
-        if cc_dir is not None:
+        if cc_dir is not None:s
             agent.direction = self._move_to_neighborhood(cc_dir)
             can_fire = bool(perception[AgentConsts.CAN_FIRE])
             print(f"[ATTACK] CC inmediato -> dir={cc_dir} fire={can_fire}")
