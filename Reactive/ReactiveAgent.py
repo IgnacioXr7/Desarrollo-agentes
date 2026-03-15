@@ -22,16 +22,16 @@ class ReactiveAgent(BaseAgent):
         dictionary = {
             "GoToCC": GoToCC("GoToCC"),
             "AttackTarget": AttackTarget("AttackTarget"),
-            "Escape": Escape("Escape"),
+            #"Escape": Escape("Escape"),
             "GoToExit": GoToExit("GoToExit"),
-            "ShootAndOrient": ShootAndOrient("ShootAndOrient"),
-            "RunAway": RunAway("RunAway"),
-            "Shoot": Shoot("Shoot"),
-            "Orient": Orient("Orient"),
-            "Detect": Detect("Detect")
+            #"ShootAndOrient": ShootAndOrient("ShootAndOrient"),
+            #"RunAway": RunAway("RunAway"),
+            #"Shoot": Shoot("Shoot"),
+            #"Orient": Orient("Orient"),
+            #"Detect": Detect("Detect")
         }
 
-        self.stateMachine = StateMachine("ReactiveBehavior", dictionary, "GoToCC")
+        self.stateMachine = StateMachine("ReactiveBehavior", dictionary, "GoToExit")
 
     def Start(self):
         print("Inicio del agente ")

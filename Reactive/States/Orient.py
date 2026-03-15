@@ -71,4 +71,4 @@ class Orient(State):
         return action, False
 
     def Transit(self, perception, map):
-        return "Shoot"
+        return "AttackTarget"
