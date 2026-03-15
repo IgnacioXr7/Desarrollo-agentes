@@ -181,9 +181,9 @@ class GoToCC(State):
             return "GoToExit"
 
         if self._cc_near(perception):
-            return "AttackTarget"
+            return "Shoot"
         if self._player_near(perception):
-            return "AttackTarget"
+            return "Shoot"
 
         return self.id
 
