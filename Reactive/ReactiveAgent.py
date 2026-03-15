@@ -43,4 +43,4 @@ class ReactiveAgent(BaseAgent):
     
     def End(self, win):
         super().End(win)
-        self.stateMachine.End()
+        self.stateMachine.End(win)

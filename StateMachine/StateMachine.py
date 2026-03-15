@@ -21,6 +21,6 @@ class StateMachine(State):
 
         return actions
 
-    def End(self, win):
+    def End(self, win = False):
         self.states[self.curentState].End()
-        super().End(win)
+        super().End()
