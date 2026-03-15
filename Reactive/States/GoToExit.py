@@ -1,5 +1,3 @@
-from collections import deque
-
 from StateMachine.State import State
 from States.AgentConsts import AgentConsts
 
@@ -8,19 +6,18 @@ class GoToExit(State):
 
     def __init__(self, id):
         super().__init__(id)
+        self.nextState = id
         self.last_pos = None
         self.stuck_counter = 0
-        self.pos_history = []
 
     def Start(self, agent):
-        print("Inicio del estado: GoToExit")
+        print("=== INICIANDO ESTADO: GO TO EXIT ===")
+        self.nextState = self.id
         self.last_pos = None
         self.stuck_counter = 0
-        self.pos_history = []
 
-    # =========================
-    # Utilidades básicas
-    # =========================
+        if not hasattr(agent, "direction"):
+            agent.direction = AgentConsts.NEIGHBORHOOD_UP
 
     def _neighbor(self, perception, move):
         mapping = {
@@ -31,202 +28,174 @@ class GoToExit(State):
         }
         return int(perception[mapping[move]])
 
-    def _is_hard_value(self, cell):
+    def _move_to_neighborhood(self, move):
+        if move == AgentConsts.MOVE_UP:
+            return AgentConsts.NEIGHBORHOOD_UP
+        if move == AgentConsts.MOVE_DOWN:
+            return AgentConsts.NEIGHBORHOOD_DOWN
+        if move == AgentConsts.MOVE_RIGHT:
+            return AgentConsts.NEIGHBORHOOD_RIGHT
+        if move == AgentConsts.MOVE_LEFT:
+            return AgentConsts.NEIGHBORHOOD_LEFT
+        return AgentConsts.NEIGHBORHOOD_UP
+
+    def _is_hard_blocked(self, perception, move):
+        cell = self._neighbor(perception, move)
         return cell in (
             AgentConsts.UNBREAKABLE,
             AgentConsts.SEMI_UNBREKABLE
         )
 
-    def _is_brick_value(self, cell):
+    def _is_brick(self, perception, move):
+        cell = self._neighbor(perception, move)
         return cell in (
             AgentConsts.BRICK,
             AgentConsts.SEMI_BREKABLE
         )
 
-    def _is_free_value(self, cell):
-        return not self._is_hard_value(cell) and not self._is_brick_value(cell)
-
-    def _is_hard_blocked(self, perception, move):
-        return self._is_hard_value(self._neighbor(perception, move))
-
-    def _is_brick(self, perception, move):
-        return self._is_brick_value(self._neighbor(perception, move))
-
-    def _next_pos(self, x, y, move):
-        if move == AgentConsts.MOVE_UP:
-            return x, y + 1
-        if move == AgentConsts.MOVE_DOWN:
-            return x, y - 1
-        if move == AgentConsts.MOVE_RIGHT:
-            return x + 1, y
-        if move == AgentConsts.MOVE_LEFT:
-            return x - 1, y
-        return x, y
+    def _is_free(self, perception, move):
+        cell = self._neighbor(perception, move)
+        return cell not in (
+            AgentConsts.UNBREAKABLE,
+            AgentConsts.SEMI_UNBREKABLE,
+            AgentConsts.BRICK,
+            AgentConsts.SEMI_BREKABLE
+        )
 
     def _at_exit_zone(self, perception):
-        ax = round(float(perception[AgentConsts.AGENT_X]))
-        ay = round(float(perception[AgentConsts.AGENT_Y]))
-        ex = round(float(perception[AgentConsts.EXIT_X]))
-        ey = round(float(perception[AgentConsts.EXIT_Y]))
+        ax = float(perception[AgentConsts.AGENT_X])
+        ay = float(perception[AgentConsts.AGENT_Y])
+        ex = float(perception[AgentConsts.EXIT_X])
+        ey = float(perception[AgentConsts.EXIT_Y])
 
-        return ax == ex and ay == ey
+        # usa == si tu juego exige casilla exacta
+        return abs(ax - ex) <= 1.0 and abs(ay - ey) <= 1.0
 
-    def _is_looping(self):
-        if len(self.pos_history) < 4:
-            return False
-        a, b, c, d = self.pos_history[-4:]
-        return a == c and b == d and a != b
+    def _preferred_moves(self, perception):
+        ax = float(perception[AgentConsts.AGENT_X])
+        ay = float(perception[AgentConsts.AGENT_Y])
+        ex = float(perception[AgentConsts.EXIT_X])
+        ey = float(perception[AgentConsts.EXIT_Y])
 
-    # =========================
-    # Utilidades del mapa
-    # =========================
+        dx = ex - ax
+        dy = ey - ay
 
-    def _map_dims(self, game_map):
-        height = len(game_map)
-        width = len(game_map[0]) if height > 0 else 0
-        return width, height
+        moves = []
 
-    def _in_bounds(self, game_map, x, y):
-        width, height = self._map_dims(game_map)
-        return 0 <= x < width and 0 <= y < height
+        # Prioriza el eje donde hay más diferencia
+        if abs(dx) > abs(dy):
+            if dx > 0:
+                moves.append(AgentConsts.MOVE_RIGHT)
+            elif dx < 0:
+                moves.append(AgentConsts.MOVE_LEFT)
 
-    def _cell(self, game_map, x, y):
-        # Si tu mapa está invertido en Y, aquí es donde tendrías que corregirlo
-        return int(game_map[y][x])
+            if dy > 0:
+                moves.append(AgentConsts.MOVE_UP)
+            elif dy < 0:
+                moves.append(AgentConsts.MOVE_DOWN)
+        else:
+            if dy > 0:
+                moves.append(AgentConsts.MOVE_UP)
+            elif dy < 0:
+                moves.append(AgentConsts.MOVE_DOWN)
 
-    def _neighbors4(self, x, y):
-        return [
-            (x, y + 1, AgentConsts.MOVE_UP),
-            (x, y - 1, AgentConsts.MOVE_DOWN),
-            (x + 1, y, AgentConsts.MOVE_RIGHT),
-            (x - 1, y, AgentConsts.MOVE_LEFT),
-        ]
+            if dx > 0:
+                moves.append(AgentConsts.MOVE_RIGHT)
+            elif dx < 0:
+                moves.append(AgentConsts.MOVE_LEFT)
 
-    # =========================
-    # BFS exacto al exit
-    # =========================
+        # Añadir alternativas por si las principales fallan
+        for move in (
+            AgentConsts.MOVE_UP,
+            AgentConsts.MOVE_DOWN,
+            AgentConsts.MOVE_RIGHT,
+            AgentConsts.MOVE_LEFT
+        ):
+            if move not in moves:
+                moves.append(move)
 
-    def _bfs_path(self, game_map, start, goal, allow_bricks):
-        """
-        Devuelve una lista de acciones hasta goal:
-        [MOVE_..., MOVE_..., ...]
-        Si no hay camino, devuelve [].
-        """
-        sx, sy = start
-        gx, gy = goal
+        return moves
 
-        if not self._in_bounds(game_map, sx, sy):
-            return []
-        if not self._in_bounds(game_map, gx, gy):
-            return []
-
-        q = deque()
-        q.append((sx, sy))
-
-        visited = {(sx, sy)}
-        parent = {(sx, sy): None}
-        parent_move = {}
-
-        while q:
-            x, y = q.popleft()
-
-            if (x, y) == (gx, gy):
-                break
-
-            for nx, ny, move in self._neighbors4(x, y):
-                if not self._in_bounds(game_map, nx, ny):
-                    continue
-                if (nx, ny) in visited:
-                    continue
-
-                cell = self._cell(game_map, nx, ny)
-
-                if self._is_hard_value(cell):
-                    continue
-
-                if self._is_brick_value(cell) and not allow_bricks:
-                    continue
-
-                visited.add((nx, ny))
-                parent[(nx, ny)] = (x, y)
-                parent_move[(nx, ny)] = move
-                q.append((nx, ny))
-
-        if (gx, gy) not in parent:
-            return []
-
-        path = []
-        node = (gx, gy)
-        while parent[node] is not None:
-            path.append(parent_move[node])
-            node = parent[node]
-        path.reverse()
-        return path
-
-    def _choose_action(self, perception, game_map):
+    def _choose_action(self, perception):
         if self._at_exit_zone(perception):
             return AgentConsts.NO_MOVE, False
 
-        ax = round(float(perception[AgentConsts.AGENT_X]))
-        ay = round(float(perception[AgentConsts.AGENT_Y]))
-        ex = round(float(perception[AgentConsts.EXIT_X]))
-        ey = round(float(perception[AgentConsts.EXIT_Y]))
+        preferred = self._preferred_moves(perception)
 
-        start = (ax, ay)
-        goal = (ex, ey)
+        # 1) Intentar mover libremente hacia el exit
+        for move in preferred:
+            if self._is_free(perception, move):
+                return move, False
 
-        # 1) Intentar primero sin atravesar ladrillos
-        path = self._bfs_path(game_map, start, goal, allow_bricks=False)
+        # 2) Si no se puede, intentar romper ladrillo en dirección útil
+        for move in preferred:
+            if self._is_brick(perception, move):
+                return move, True
 
-        # 2) Si no hay camino, permitir ladrillos
-        if not path:
-            path = self._bfs_path(game_map, start, goal, allow_bricks=True)
+        # 3) Si todo está bloqueado, intentar cualquier libre
+        for move in (
+            AgentConsts.MOVE_UP,
+            AgentConsts.MOVE_DOWN,
+            AgentConsts.MOVE_RIGHT,
+            AgentConsts.MOVE_LEFT
+        ):
+            if self._is_free(perception, move):
+                return move, False
 
-        if not path:
-            return AgentConsts.NO_MOVE, False
-
-        move = path[0]
-
-        # Si el primer paso es ladrillo, disparar
-        if self._is_brick(perception, move):
-            return move, True
-
-        # Si el primer paso está libre, moverse
-        if not self._is_hard_blocked(perception, move):
-            return move, False
+        # 4) Si no hay libres, intentar cualquier ladrillo
+        for move in (
+            AgentConsts.MOVE_UP,
+            AgentConsts.MOVE_DOWN,
+            AgentConsts.MOVE_RIGHT,
+            AgentConsts.MOVE_LEFT
+        ):
+            if self._is_brick(perception, move):
+                return move, True
 
         return AgentConsts.NO_MOVE, False
 
     def Update(self, perception, game_map, agent):
+        self.nextState = self.id
+
         ax = round(float(perception[AgentConsts.AGENT_X]), 2)
         ay = round(float(perception[AgentConsts.AGENT_Y]), 2)
         current_pos = (ax, ay)
-
-        self.pos_history.append(current_pos)
-        if len(self.pos_history) > 6:
-            self.pos_history.pop(0)
 
         if self.last_pos is not None and self.last_pos == current_pos:
             self.stuck_counter += 1
         else:
             self.stuck_counter = 0
 
-        looping = self._is_looping()
+        action, must_shoot = self._choose_action(perception)
 
-        action, must_shoot = self._choose_action(perception, game_map)
+        # Si está atascado, probar laterales antes que quedarse quieto
+        if self.stuck_counter >= 3 and action == AgentConsts.NO_MOVE:
+            for move in (
+                AgentConsts.MOVE_UP,
+                AgentConsts.MOVE_DOWN,
+                AgentConsts.MOVE_RIGHT,
+                AgentConsts.MOVE_LEFT
+            ):
+                if self._is_free(perception, move):
+                    action = move
+                    must_shoot = False
+                    break
 
         self.last_pos = current_pos
         can_fire = bool(perception[AgentConsts.CAN_FIRE])
 
+        if action != AgentConsts.NO_MOVE:
+            agent.direction = self._move_to_neighborhood(action)
+
         print(
-            f"[GoToExit] pos={current_pos} loop={looping} stuck={self.stuck_counter} "
+            f"[GoToExit] pos={current_pos} stuck={self.stuck_counter} "
             f"action={action} shoot={can_fire and must_shoot}"
         )
 
         return action, can_fire and must_shoot
 
     def Transit(self, perception, game_map):
-        return self.id
+        return self.nextState
 
     def End(self):
-        print("Fin del estado: GoToExit")
+        print("=== FINALIZANDO ESTADO: GO TO EXIT ===")
