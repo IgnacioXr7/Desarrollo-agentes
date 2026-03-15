@@ -21,12 +21,12 @@ class Shoot (State) :
 
         #Ya no hay objetivo 
         if perception[agent.direction] not in [AgentConsts.PLAYER, AgentConsts.SHELL] : 
-            if perception[AgentConsts.PLAYER_X] == -1 : #El jugador esta muerto
+            if perception[AgentConsts.PLAYER_X] == -1 or perception[AgentConsts.COMMAND_CENTER_X] == -1 : #El jugador esta muerto
                 #Ir a por la estrella  
-                self.id = "Detect"
+                self.id = "GoToExit"
             else : 
                 #Esto sería ir a CC 
-                self.id = "Detect"
+                self.id = "GoToCC"
 
         return agent.direction,True
     

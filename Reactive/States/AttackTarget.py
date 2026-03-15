@@ -106,9 +106,15 @@ class AttackTarget(State):
 
         # Si el player existe pero no está alineado, orientar hacia él
         #if player_alive:
+<<<<<<< HEAD
          #   print("[ATTACK] PLAYER no alineado -> Orient")
           #  self.nextState = "Orient"
            # return AgentConsts.NO_MOVE, False
+=======
+        #    print("[ATTACK] PLAYER no alineado -> Orient")
+        #    self.nextState = "Orient"
+        #    return AgentConsts.NO_MOVE, False
+>>>>>>> 9b75b90b90799e2ae9a0d6605ce6e319dab07d92
 
         # Si no hay player, atacar CC
         cc_dir = self._target_in_perception(perception, AgentConsts.COMMAND_CENTER)
