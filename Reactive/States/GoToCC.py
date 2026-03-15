@@ -46,7 +46,7 @@ class GoToCC(State):
             AgentConsts.MOVE_RIGHT,
             AgentConsts.MOVE_LEFT
         ):
-            if self._neighbor(perception, move) == AgentConsts.PLAYER:
+            if self._neighbor(perception, move) in [AgentConsts.PLAYER, AgentConsts.SHELL]:
                 return True
         return False
 
@@ -141,6 +141,7 @@ class GoToCC(State):
         if self._cc_destroyed(perception):
             return AgentConsts.NO_MOVE, False
 
+
         ax = round(float(perception[AgentConsts.AGENT_X]), 2)
         ay = round(float(perception[AgentConsts.AGENT_Y]), 2)
         current_pos = (ax, ay)
@@ -184,6 +185,7 @@ class GoToCC(State):
             return "Shoot"
         if self._player_near(perception):
             return "Shoot"
+
 
         return self.id
 
