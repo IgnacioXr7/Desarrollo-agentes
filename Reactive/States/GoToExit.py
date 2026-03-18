@@ -242,8 +242,8 @@ class GoToExit(State):
         return action, can_fire and must_shoot
 
     def Transit(self, perception, game_map):
-        if self._cc_alive(perception):
-            return "GoToCC"
+       # if self._cc_alive(perception):
+        #    return "GoToCC"
         return self.id
 
     def End(self):
